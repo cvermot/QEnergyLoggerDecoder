@@ -59,7 +59,6 @@ void ELFileParser::computeTotalFilesSize(QFileInfoList files)
 
 void ELFileParser::runBinaryDecoding(QString filePath)
 {
-    //QFile file("./dataset/20171217-1090Wh/A0379EDA.BIN");
     QFile file(filePath);
        if (!file.open(QIODevice::ReadOnly))
        {

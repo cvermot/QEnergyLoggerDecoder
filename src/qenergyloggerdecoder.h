@@ -78,7 +78,7 @@ private slots:
     void populateTable();
     void setProgressBarMaximum(int byteToProceed);
     void updateProgressBar(int numberOfNewBytesProcessed);
-    void outputFileLineEditChange();
+    void inputOutputFileLineEditChange();
     void noFileToDecode();
 
 

@@ -39,34 +39,35 @@ QEnergyLoggerDecoder::QEnergyLoggerDecoder(QWidget *parent)
     helpMenu->addAction(aboutAction);
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 
-
     QFormLayout *filesFormLayout = new QFormLayout(this);
     controlLayout->addLayout(filesFormLayout);
 
-
     QHBoxLayout *inputFileLayout = new QHBoxLayout(this);
     inputFileLineEdit = new QLineEdit(this);
-    inputFileLineEdit->setText("./dataset/20171217-1090Wh/");
+    //inputFileLineEdit->setText("./dataset/20171217-1090Wh/");
     QPushButton *inputFilePushButton = new QPushButton(tr("Select"), this);
     inputFileLayout->addWidget(inputFileLineEdit);
     inputFileLayout->addWidget(inputFilePushButton);
     connect(inputFilePushButton, SIGNAL(clicked(bool)), this, SLOT(selectFiles()));
+    connect(inputFileLineEdit, SIGNAL(textChanged(QString)), this, SLOT(inputOutputFileLineEditChange()));
     filesFormLayout->addRow(tr("Binary directory"), inputFileLayout);
 
     QHBoxLayout *outputFileLayout = new QHBoxLayout(this);
     outputFileLineEdit = new QLineEdit(this);
-    outputFileLineEdit->setText("./dataset/20171217-1090Wh/out.csv");
+    //outputFileLineEdit->setText("./dataset/20171217-1090Wh/out.csv");
     QPushButton *outputFilePushButton = new QPushButton(tr("Select"), this);
     outputFileLayout->addWidget(outputFileLineEdit);
     outputFileLayout->addWidget(outputFilePushButton);
     connect(outputFilePushButton, SIGNAL(clicked(bool)), this, SLOT(selectOutputFile()));
-    connect(outputFileLineEdit, SIGNAL(textChanged(QString)), this, SLOT(outputFileLineEditChange()));
+    connect(outputFileLineEdit, SIGNAL(textChanged(QString)), this, SLOT(inputOutputFileLineEditChange()));
     filesFormLayout->addRow(tr("CSV Output"), outputFileLayout);
 
     //---------------------Run button---------------------//
     runPushButton = new QPushButton(tr("Run"), this);
     connect(runPushButton, SIGNAL(clicked(bool)), this, SLOT(runFilesDecoding()));
     controlLayout->addWidget(runPushButton);
+    runPushButton->setEnabled(false);
+    runPushButton->setToolTip("You need to select an input dir in order to decode files !");
 
     //---------------------Export button---------------------//
     exportPushButton = new QPushButton(tr("Export to CSV"), this);
@@ -111,7 +112,7 @@ QEnergyLoggerDecoder::QEnergyLoggerDecoder(QWidget *parent)
 
 }
 
-void QEnergyLoggerDecoder::outputFileLineEditChange()
+void QEnergyLoggerDecoder::inputOutputFileLineEditChange()
 {
     if(outputFileLineEdit->text().trimmed().isEmpty())
     {
@@ -122,6 +123,17 @@ void QEnergyLoggerDecoder::outputFileLineEditChange()
     {
         exportPushButton->setEnabled(true);
         exportPushButton->setToolTip("");
+    }
+
+    if(inputFileLineEdit->text().trimmed().isEmpty())
+    {
+        runPushButton->setEnabled(false);
+        runPushButton->setToolTip("You need to select an input dir in order to decode files !");
+    }
+    else
+    {
+        runPushButton->setEnabled(true);
+        runPushButton->setToolTip("");
     }
 }
 
