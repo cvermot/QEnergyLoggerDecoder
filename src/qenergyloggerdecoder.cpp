@@ -153,6 +153,10 @@ void QEnergyLoggerDecoder::runFilesDecoding()
     elfp->moveToThread(thread);
 
     statusBar()->showMessage("Decoding files... Please wait !");
+
+    runPushButton->setText(tr("Decoding files, please wait !"));
+    runPushButton->setEnabled(false);
+
     thread->start();
 
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
@@ -232,6 +236,9 @@ void QEnergyLoggerDecoder::populateTable()
 
        tableWidget->resizeColumnsToContents();
        tableWidget->setMinimumWidth(tableWidget->horizontalHeader()->length() + tableWidget->verticalHeader()->width() +30);
+
+        runPushButton->setText(tr("Run"));
+       runPushButton->setEnabled(true);
 
        statusBar()->showMessage("Files decoding successful");
 }
