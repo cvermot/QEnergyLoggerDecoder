@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "QEnergyLoggerDecoder"
-#define MyAppVersion "1.0"
+#define MyAppVersion "1.1"
 #define MyAppPublisher "QEnergyLoggerDecoder dev team"
 #define MyAppURL "http://afterflight.org"
 #define MyAppExeName "QEnergyLoggerDecoder.exe"
@@ -22,7 +22,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DisableProgramGroupPage=yes
 LicenseFile=..\LICENSE
-OutputBaseFilename=QEnergyLoggerDecoder-1.0-setup
+OutputBaseFilename=QEnergyLoggerDecoder-windows-1.1-setup
 Compression=lzma
 SolidCompression=yes
 
@@ -35,8 +35,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked; OnlyBelowVersion: 0,6.1
 
 [Files]
-Source: "..\releases\1.0\QEnergyLoggerDecoder-1.0\QEnergyLoggerDecoder.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\releases\1.0\QEnergyLoggerDecoder-1.0\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\releases\1.0\QEnergyLoggerDecoder-windows-1.1\QEnergyLoggerDecoder.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\releases\1.0\QEnergyLoggerDecoder-windows-1.1\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
