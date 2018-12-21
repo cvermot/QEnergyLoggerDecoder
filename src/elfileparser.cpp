@@ -19,7 +19,6 @@ ELFileParser::ELFileParser(elDataHandler *eldhIn, QObject *parent) : QObject(par
 
 void ELFileParser::runFilesDecoding()
 {
-    qDebug() << "running";
     eldh->clear();
     QDir dir;
     qDebug() << eldh->dirPath;
@@ -151,7 +150,7 @@ ELFileParser::DataType ELFileParser::findDataType(QDataStream &inputStream)
         inputStream >> complementaryCheckData;
         if((QByteArray::number(complementaryCheckData).toUInt()) == K_DATA_HEADER_1)
         {
-            qDebug() << "header checked OK";
+            //qDebug() << "header checked OK";
             ret = DataType_DATA_HEADER;
             inputStream.commitTransaction();
         }
@@ -163,7 +162,7 @@ ELFileParser::DataType ELFileParser::findDataType(QDataStream &inputStream)
         inputStream >> complementaryCheckInfo;
         if((QByteArray::number(complementaryCheckInfo).toUInt()) == K_INFO_HEADER_1)
         {
-            qDebug() << "info checked OK";
+            //qDebug() << "info checked OK";
             ret = DataType_INFO_HEADER;
             inputStream.commitTransaction();
         }
@@ -234,8 +233,7 @@ void ELFileParser::decodeInfoFile(QDataStream &inputStream, QChar id)
 
     datetime = QDateTime(QDate(year+2000, mounth, day), QTime(hour, minute));
     eldh->setDateForNextDataset(datetime, id);
-    qDebug() << "Date info file" << datetime.toString(Qt::ISODate);
-
+    //qDebug() << "Date info file" << datetime.toString(Qt::ISODate);
 
     emit bytesProcessed(102);
 }

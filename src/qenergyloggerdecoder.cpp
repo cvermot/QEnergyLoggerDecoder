@@ -78,12 +78,13 @@ QEnergyLoggerDecoder::QEnergyLoggerDecoder(QWidget *parent)
     selectedCumulatedConsumption = new QLabel();
     statusBar()->addPermanentWidget(selectedCumulatedConsumption);
     selectedCumulatedConsumption->setText("");
-    //---------------------Progress bar---------------------//
+         //---------------------Progress bar---------------------//
     progressBar = new QProgressBar();
     statusBar()->addPermanentWidget(progressBar);
 
     statusBar()->showMessage("Ready");
 
+    //---------------------table widget---------------------//
     tableWidget = new QTableWidget(1, 8, this);
     tableWidget->setHorizontalHeaderItem(K_TABLE_WIDGET_DATE, new QTableWidgetItem("Date"));
     tableWidget->setHorizontalHeaderItem(K_TABLE_WIDGET_TENSION, new QTableWidgetItem("Tension"));
@@ -118,7 +119,6 @@ QEnergyLoggerDecoder::QEnergyLoggerDecoder(QWidget *parent)
 
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "QEnergyLoggerDecoder");
     settings.beginGroup("files");
-    qDebug() << settings.value("output");
     inputFileLineEdit->setText(settings.value("input").toString());
     outputFileLineEdit->setText(settings.value("output").toString());
     settings.endGroup();
@@ -155,17 +155,20 @@ void QEnergyLoggerDecoder::inputOutputFileLineEditChange()
         runPushButton->setToolTip("");
     }
 
+    //reset runPushButton text (in case of previous failure)
+    runPushButton->setText("Run");
+
     QSettings settings(QSettings::IniFormat, QSettings::UserScope, "QEnergyLoggerDecoder");
     settings.beginGroup("files");
     settings.setValue("input", inputFileLineEdit->text());
     settings.setValue("output", outputFileLineEdit->text());
-    qDebug() << settings.value("output");
     settings.endGroup();
 }
 
 void QEnergyLoggerDecoder::noFileToDecode()
 {
     statusBar()->showMessage("Failure : no file to decode in this directory");
+    runPushButton->setText("Failure. Select another directory !");
 }
 
 void QEnergyLoggerDecoder::runFilesDecoding()
@@ -307,7 +310,7 @@ void QEnergyLoggerDecoder::sumupConsumption()
 void QEnergyLoggerDecoder::about()
 {
     QMessageBox::about(this, tr("About QEnergyLoggerDecoder"),
-            tr("<b>QEnergyLoggerDecoder v 1.0</b> < br />< br /> "
+            tr("<b>QEnergyLoggerDecoder v 1.1</b> < br />< br /> "
                "A software aimed to decode binary files produced by Voltcraft Energy Logger 4000 (and maybe 3500). <br /><br />"
                "You can download updates on the official website of the project"
                " <a href=\"http://afterflight.org\">http://afterflight.org</a>.<br />< br/>"
