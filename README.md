@@ -7,4 +7,4 @@ Allow to decode file produced by Conrad Energy Logger. Software provided by Volt
 
 Minimum version of Qt : 5.10 (required for commit and rollback transactions on QDataStream).
 
-Binaries versions are provided for Windows and MacOS. Currently, I provide no binaries versions for Linux, but you should be able to build the software by your own (How To will come later).
+Binaries versions are provided for Windows and MacOS (look at the release page : https://github.com/verdesroches/QEnergyLoggerDecoder/releases). Currently, I provide no binaries versions for Linux, but you should be able to build the software by your own (How To will come later).
