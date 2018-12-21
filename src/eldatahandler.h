@@ -17,16 +17,33 @@ public:
     void setDateForNextDataset(QDateTime p_datetime, QChar id);
     void clear();
 
+    enum Id
+    {
+        Id_A = 0x0,
+        Id_B = 0x1,
+        Id_C = 0x2,
+        Id_D = 0x3,
+        Id_E = 0x4,
+        Id_F = 0x5,
+        Id_G = 0x6,
+        Id_H = 0x7,
+        Id_I = 0x8,
+        Id_J = 0x9,
+        Id_NbId = 0xA
+    };
+
     struct DataInfo
     {
         QDateTime date;
         double voltage;
         double current;
         double cosPhi;
-        int id;
+        double consumedPower;
+        Id id;
     };
 
     QVector<DataInfo> *elData;
+    QVector<double> *cumulatedConsumptionById;
     QString dirPath;
 
 private:
@@ -34,7 +51,7 @@ private:
 
     int nextPositionToInsert;
 
-    int idToInsert;
+    Id idToInsert;
 
 signals:
 

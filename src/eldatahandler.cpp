@@ -5,15 +5,17 @@ elDataHandler::elDataHandler(QObject *parent) : QObject(parent)
 {
     elData = new QVector<DataInfo>;
     nextPositionToInsert = 0;
-    idToInsert = 0;
-    //dirPath = QString("./dataset/20171217-1090Wh/");
+    idToInsert = Id_A;
+    cumulatedConsumptionById = new QVector<double>(Id_NbId, 0.0);
 }
 
 void elDataHandler::clear()
 {
     elData->clear();
+    delete cumulatedConsumptionById;
+    cumulatedConsumptionById = new QVector<double>(Id_NbId, 0.0);
     nextPositionToInsert = 0;
-    idToInsert = 0 ;
+    idToInsert = Id_A ;
 }
 
 void elDataHandler::addDatatset(quint16 p_voltage, quint16 p_current, quint8 p_cosphi)
@@ -29,9 +31,16 @@ void elDataHandler::addDatatset(quint16 p_voltage, quint16 p_current, quint8 p_c
         info.voltage = QByteArray::number(p_voltage).toDouble()/10;
         info.current = QByteArray::number(p_current).toDouble()/1000;
         info.cosPhi = QByteArray::number(p_cosphi).toShort();
+        info.consumedPower = (info.voltage*info.current*((info.cosPhi+1)/100))/60;
         info.id = idToInsert;
+
+        //insert data
         elData->insert(nextPositionToInsert, info);
+
+        //compute cumulated consumption by Id
+        cumulatedConsumptionById->replace(info.id, (cumulatedConsumptionById->at(info.id) + info.consumedPower));
     }
+
     dateForNextDataset = dateForNextDataset.addSecs(60) ;
 
 }
@@ -63,42 +72,42 @@ void elDataHandler::setDateForNextDataset(QDateTime p_datetime, QChar id)
 
     if(id == 'A')
     {
-        idToInsert=0;
+        idToInsert=Id_A;
     }
     else if(id == 'B')
     {
-        idToInsert=1;
+        idToInsert=Id_B;
     }
     else if(id == 'C')
     {
-        idToInsert=2;
+        idToInsert=Id_C;
     }
     else if(id == 'D')
     {
-        idToInsert=3;
+        idToInsert=Id_D;
     }
     else if(id == 'E')
     {
-        idToInsert=4;
+        idToInsert=Id_E;
     }
     else if(id == 'F')
     {
-        idToInsert=5;
+        idToInsert=Id_F;
     }
     else if(id == 'G')
     {
-        idToInsert=6;
+        idToInsert=Id_G;
     }
     else if(id == 'H')
     {
-        idToInsert=7;
+        idToInsert=Id_H;
     }
     else if(id == 'I')
     {
-        idToInsert=8;
+        idToInsert=Id_I;
     }
     else if(id == 'J')
     {
-        idToInsert=9;
+        idToInsert=Id_J;
     }
 }

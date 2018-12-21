@@ -44,6 +44,7 @@ private:
     QPushButton *runPushButton;
     QPushButton *exportPushButton;
     QProgressBar *progressBar;
+    QLabel *selectedCumulatedConsumption;
 
     QLineEdit *inputFileLineEdit;
     QPushButton *inputFilePushButton;
@@ -80,6 +81,7 @@ private slots:
     void updateProgressBar(int numberOfNewBytesProcessed);
     void inputOutputFileLineEditChange();
     void noFileToDecode();
+    void sumupConsumption();
 
 
 

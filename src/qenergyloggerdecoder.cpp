@@ -6,6 +6,8 @@
 #include <QByteArray>
 #include <QHeaderView>
 #include <QThread>
+#include <QSettings>
+#include <QLabel>
 
 const int QEnergyLoggerDecoder::K_TABLE_WIDGET_DATE = 0;
 const int QEnergyLoggerDecoder::K_TABLE_WIDGET_TENSION = 1;
@@ -44,22 +46,18 @@ QEnergyLoggerDecoder::QEnergyLoggerDecoder(QWidget *parent)
 
     QHBoxLayout *inputFileLayout = new QHBoxLayout(this);
     inputFileLineEdit = new QLineEdit(this);
-    //inputFileLineEdit->setText("./dataset/20171217-1090Wh/");
     QPushButton *inputFilePushButton = new QPushButton(tr("Select"), this);
     inputFileLayout->addWidget(inputFileLineEdit);
     inputFileLayout->addWidget(inputFilePushButton);
     connect(inputFilePushButton, SIGNAL(clicked(bool)), this, SLOT(selectFiles()));
-    connect(inputFileLineEdit, SIGNAL(textChanged(QString)), this, SLOT(inputOutputFileLineEditChange()));
     filesFormLayout->addRow(tr("Binary directory"), inputFileLayout);
 
     QHBoxLayout *outputFileLayout = new QHBoxLayout(this);
     outputFileLineEdit = new QLineEdit(this);
-    //outputFileLineEdit->setText("./dataset/20171217-1090Wh/out.csv");
     QPushButton *outputFilePushButton = new QPushButton(tr("Select"), this);
     outputFileLayout->addWidget(outputFileLineEdit);
     outputFileLayout->addWidget(outputFilePushButton);
     connect(outputFilePushButton, SIGNAL(clicked(bool)), this, SLOT(selectOutputFile()));
-    connect(outputFileLineEdit, SIGNAL(textChanged(QString)), this, SLOT(inputOutputFileLineEditChange()));
     filesFormLayout->addRow(tr("CSV Output"), outputFileLayout);
 
     //---------------------Run button---------------------//
@@ -76,9 +74,14 @@ QEnergyLoggerDecoder::QEnergyLoggerDecoder(QWidget *parent)
     exportPushButton->setEnabled(false);
     exportPushButton->setToolTip("You need to select an output file to generate CSV file");
 
-     //---------------------Progress bar---------------------//
+    //---------------------Status bar-----------------------//
+    selectedCumulatedConsumption = new QLabel();
+    statusBar()->addPermanentWidget(selectedCumulatedConsumption);
+    selectedCumulatedConsumption->setText("");
+    //---------------------Progress bar---------------------//
     progressBar = new QProgressBar();
     statusBar()->addPermanentWidget(progressBar);
+
     statusBar()->showMessage("Ready");
 
     tableWidget = new QTableWidget(1, 8, this);
@@ -109,6 +112,22 @@ QEnergyLoggerDecoder::QEnergyLoggerDecoder(QWidget *parent)
     tableWidget->setMinimumWidth(tableWidget->horizontalHeader()->length() + tableWidget->verticalHeader()->width() +15);
     tableWidget->clearContents();
     tableWidget->setRowCount(0);
+    tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    connect(tableWidget, SIGNAL(itemSelectionChanged()), this, SLOT(sumupConsumption()));
+
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "QEnergyLoggerDecoder");
+    settings.beginGroup("files");
+    qDebug() << settings.value("output");
+    inputFileLineEdit->setText(settings.value("input").toString());
+    outputFileLineEdit->setText(settings.value("output").toString());
+    settings.endGroup();
+
+    //connect slots AFTER settings reading in order to avoid concurrent modifying of text when restoring settings.
+    connect(outputFileLineEdit, SIGNAL(textChanged(QString)), this, SLOT(inputOutputFileLineEditChange()));
+    connect(inputFileLineEdit, SIGNAL(textChanged(QString)), this, SLOT(inputOutputFileLineEditChange()));
+    //Enable buttons if files are restored from QSettings
+    inputOutputFileLineEditChange();
 
 }
 
@@ -135,6 +154,13 @@ void QEnergyLoggerDecoder::inputOutputFileLineEditChange()
         runPushButton->setEnabled(true);
         runPushButton->setToolTip("");
     }
+
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope, "QEnergyLoggerDecoder");
+    settings.beginGroup("files");
+    settings.setValue("input", inputFileLineEdit->text());
+    settings.setValue("output", outputFileLineEdit->text());
+    qDebug() << settings.value("output");
+    settings.endGroup();
 }
 
 void QEnergyLoggerDecoder::noFileToDecode()
@@ -154,8 +180,10 @@ void QEnergyLoggerDecoder::runFilesDecoding()
 
     statusBar()->showMessage("Decoding files... Please wait !");
 
-    runPushButton->setText(tr("Decoding files, please wait !"));
+    runPushButton->setText(tr("Decoding files... Please wait !"));
     runPushButton->setEnabled(false);
+
+    selectedCumulatedConsumption->setText("");
 
     thread->start();
 
@@ -177,7 +205,6 @@ void QEnergyLoggerDecoder::setProgressBarMaximum(int byteToProceed)
 {
     progressBar->setMaximum(byteToProceed);
     progressBar->reset();
-    //qDebug() << "Total size" << progressBar->maximum() << byteToProceed;
 }
 
 void QEnergyLoggerDecoder::updateProgressBar(int numberOfNewBytesProcessed)
@@ -224,7 +251,7 @@ void QEnergyLoggerDecoder::populateTable()
            tableWidget->setItem(k, K_TABLE_WIDGET_WATT, new QTableWidgetItem(QString::number(it->voltage*it->current, 'f', 2)));
            tableWidget->setItem(k, K_TABLE_WIDGET_VA, new QTableWidgetItem(QString::number(it->voltage*it->current*((it->cosPhi+1)/100), 'f', 2)));
 
-           powerConsumed=powerConsumed + (it->voltage*it->current*((it->cosPhi+1)/100))/60;
+           powerConsumed=powerConsumed + (it->consumedPower);
            tableWidget->setItem(k, K_TABLE_WIDGET_CUMULATED_CONSUMPTION, new QTableWidgetItem(QString::number(powerConsumed, 'f', 2)));
            tableWidget->setItem(k, K_TABLE_WIDGET_ID, new QTableWidgetItem(QString::number(it->id)));
 
@@ -237,7 +264,7 @@ void QEnergyLoggerDecoder::populateTable()
        tableWidget->resizeColumnsToContents();
        tableWidget->setMinimumWidth(tableWidget->horizontalHeader()->length() + tableWidget->verticalHeader()->width() +30);
 
-        runPushButton->setText(tr("Run"));
+       runPushButton->setText(tr("Run"));
        runPushButton->setEnabled(true);
 
        statusBar()->showMessage("Files decoding successful");
@@ -254,6 +281,27 @@ void QEnergyLoggerDecoder::selectOutputFile()
 {
     QString filename = QFileDialog::getSaveFileName(this, tr("Select where to save CSV output file"), QDir::homePath(), tr("CSV files (*.csv)"));
     outputFileLineEdit->setText(filename);
+}
+
+void QEnergyLoggerDecoder::sumupConsumption()
+{
+    QList<QTableWidgetItem*> selectedItem = tableWidget->selectedItems();
+    QList<QTableWidgetSelectionRange> ranges = tableWidget->selectedRanges();
+    double cumulatedCons = 0;
+    int numberOfSamples = 0;
+    if(ranges.size() > 0)
+    {
+        //for each range, look for consumption and sum each line between top and bottom row
+        for (int k = 0; k < ranges.size() ; k++)
+        {
+            for (int j = ranges.at(k).topRow() ; j <= ranges.at(k).bottomRow() ; j++)
+            {
+                cumulatedCons = cumulatedCons + eldh.elData->at(eldh.elData->size()-1-j).consumedPower;
+                numberOfSamples++;
+            }
+        }
+        selectedCumulatedConsumption->setText(QString::number(cumulatedCons, 'f' , 2) + " Wh in " + QString::number(numberOfSamples) + " minutes");
+    }
 }
 
 void QEnergyLoggerDecoder::about()

@@ -81,8 +81,6 @@ void ELFileParser::runBinaryDecoding(QString filePath)
             QDateTime datetime;
             DataType dataType = DataType_INVALIDE;
 
-            //qDebug() << "Taille à lire "<< out.device()->bytesAvailable();
-
             dataType = findDataType(out);
 
             while((!out.atEnd()) && (dataType != DataType_EOF) )
@@ -218,12 +216,8 @@ void ELFileParser::decodeInfoFile(QDataStream &inputStream, QChar id)
     qDebug() << "total on time" << consumed/100 ;
 
     //get unit id => go to 84rd byte
-    uint length = 70;
-    char *raw = new char[length]();
-    uint test = inputStream.readRawData(raw, length);
     inputStream >> devId;
     qDebug() << "devId" << devId;
-    delete raw;
 
     //get tariff 1
     tariff1 = getTariff(inputStream);
@@ -239,7 +233,6 @@ void ELFileParser::decodeInfoFile(QDataStream &inputStream, QChar id)
     inputStream >> year ;
 
     datetime = QDateTime(QDate(year+2000, mounth, day), QTime(hour, minute));
-    //eldh->dateForNextDataset = datetime;
     eldh->setDateForNextDataset(datetime, id);
     qDebug() << "Date info file" << datetime.toString(Qt::ISODate);
 
