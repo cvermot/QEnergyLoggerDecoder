@@ -221,7 +221,7 @@ void QEnergyLoggerDecoder::runExportToCsv()
     QFile output(outputFileLineEdit->text());
     output.open(QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text);
     QTextStream stream(&output);
-    for(int k=0;k<eldh.elData->size();k++)
+    for(int k=eldh.elData->size()-1;k>=0;k--)
     {
         stream << eldh.elData->at(k).date.toString(Qt::ISODate) << ";" << eldh.elData->at(k).voltage << ";" << eldh.elData->at(k).current << ";" << eldh.elData->at(k).cosPhi << "\n";
     }
