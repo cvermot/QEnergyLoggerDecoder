@@ -240,12 +240,11 @@ void QEnergyLoggerDecoder::populateTable()
 
     double powerConsumed=0;
 
-    QVector<elDataHandler::DataInfo>::const_reverse_iterator it;
-    it = eldh.elData->crend();
-    it--;
+    QVector<elDataHandler::DataInfo>::const_iterator it;
+    it = eldh.elData->cbegin();
     int k = 0;
 
-    while (it != eldh.elData->crbegin())
+    while (it != eldh.elData->cend())
     {
         tableWidget->setItem(k, K_TABLE_WIDGET_DATE, new QTableWidgetItem(it->date.toString(Qt::ISODate)));
         tableWidget->setItem(k, K_TABLE_WIDGET_TENSION, new QTableWidgetItem(QString::number(it->voltage)));
@@ -259,7 +258,7 @@ void QEnergyLoggerDecoder::populateTable()
         tableWidget->setItem(k, K_TABLE_WIDGET_CUMULATED_CONSUMPTION, new QTableWidgetItem(QString::number(powerConsumed, 'f', 2)));
         tableWidget->setItem(k, K_TABLE_WIDGET_ID, new QTableWidgetItem(QString::number(it->id)));
 
-        it--;
+        it++;
         k++;
     }
 
