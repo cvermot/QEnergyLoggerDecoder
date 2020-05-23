@@ -4,7 +4,6 @@
 elDataHandler::elDataHandler(QObject *parent) : QObject(parent)
 {
     elData = new QVector<DataInfo>;
-    nextPositionToInsert = 0;
     idToInsert = Id_A;
     cumulatedConsumptionById = new QVector<double>(Id_NbId, 0.0);
 }
@@ -14,7 +13,6 @@ void elDataHandler::clear()
     elData->clear();
     delete cumulatedConsumptionById;
     cumulatedConsumptionById = new QVector<double>(Id_NbId, 0.0);
-    nextPositionToInsert = 0;
     idToInsert = Id_A ;
 }
 
@@ -35,40 +33,19 @@ void elDataHandler::addDatatset(quint16 p_voltage, quint16 p_current, quint8 p_c
         info.id = idToInsert;
 
         //insert data
-        elData->insert(nextPositionToInsert, info);
+        //elData->insert(nextPositionToInsert, info);
+        elData->append(info);
 
         //compute cumulated consumption by Id
         cumulatedConsumptionById->replace(info.id, (cumulatedConsumptionById->at(info.id) + info.consumedPower));
     }
 
     dateForNextDataset = dateForNextDataset.addSecs(60) ;
-
 }
 
 void elDataHandler::setDateForNextDataset(QDateTime p_datetime, QChar id)
 {
-    //1) look for the first date which is superior to provided time
-    //2) stock indice of the date found
-    //3) insert new data before this value
-
-    nextPositionToInsert = 0;
-    if(elData->size() > 0)
-    {
-        for (int k = 0; k < elData->size(); k++)
-        {
-            if (p_datetime < elData->at(nextPositionToInsert).date)
-            {
-                nextPositionToInsert++;
-            }
-            else
-            {
-                k = elData->size();
-            }
-        }
-    //TODO optimize
-    }
     dateForNextDataset = p_datetime;
-
 
     if(id == 'A')
     {

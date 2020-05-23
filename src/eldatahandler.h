@@ -49,8 +49,6 @@ public:
 private:
     QDateTime dateForNextDataset;
 
-    int nextPositionToInsert;
-
     Id idToInsert;
 
 signals:

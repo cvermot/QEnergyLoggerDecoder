@@ -14,7 +14,6 @@ const quint16 ELFileParser::K_NULL = 0xFF;
 ELFileParser::ELFileParser(elDataHandler *eldhIn, QObject *parent) : QObject(parent)
 {
     eldh = eldhIn;
-
 }
 
 void ELFileParser::runFilesDecoding()
@@ -33,16 +32,16 @@ void ELFileParser::runFilesDecoding()
     }
     else
     {
-    computeTotalFilesSize(files);
+        computeTotalFilesSize(files);
 
-    for(int k=0;k<files.size();k++)
-    {
-        qDebug() << files.at(k).filePath();
-        runBinaryDecoding(files.at(k).filePath());
+        for(int k=files.size()-1;k>0;k--)
+        {
+            qDebug() << files.at(k).filePath();
+            runBinaryDecoding(files.at(k).filePath());
+        }
+
+        emit finished();
     }
-
-    emit finished();
-     }
 }
 
 void ELFileParser::computeTotalFilesSize(QFileInfoList files)
@@ -59,74 +58,75 @@ void ELFileParser::computeTotalFilesSize(QFileInfoList files)
 void ELFileParser::runBinaryDecoding(QString filePath)
 {
     QFile file(filePath);
-       if (!file.open(QIODevice::ReadOnly))
-       {
-           qDebug() << "echec ouverture";
-       }
-       else
-       {
-            QDataStream out(&file);
-            out.setByteOrder(QDataStream::BigEndian);
 
-            quint16 voltage = 0;
-            quint16 current = 0;
-            quint8 cosphi = 0;
-            quint8 year = 0;
-            quint8 mounth = 0;
-            quint8 day = 0;
-            quint8 hour = 0;
-            quint8 minute = 0;
-            elDataHandler::DataInfo info;
-            QDateTime datetime;
-            DataType dataType = DataType_INVALIDE;
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "echec ouverture";
+    }
+    else
+    {
+        QDataStream out(&file);
+        out.setByteOrder(QDataStream::BigEndian);
+
+        quint16 voltage = 0;
+        quint16 current = 0;
+        quint8 cosphi = 0;
+        quint8 year = 0;
+        quint8 mounth = 0;
+        quint8 day = 0;
+        quint8 hour = 0;
+        quint8 minute = 0;
+        elDataHandler::DataInfo info;
+        QDateTime datetime;
+        DataType dataType = DataType_INVALIDE;
+
+        dataType = findDataType(out);
+
+        while((!out.atEnd()) && (dataType != DataType_EOF) )
+        {
+            if(dataType == DataType_DATA_HEADER)
+            {
+                //We get date and time in order to date next datas
+                out >> mounth ;
+                out >> day ;
+                out >> year ;
+                out >> hour ;
+                out >> minute ;
+
+                datetime = QDateTime(QDate(year+2000, mounth, day), QTime(hour, minute));
+                eldh->setDateForNextDataset(datetime, QFileInfo(file.fileName()).fileName().at(0));
+
+                //We processed 1 byte for each Y/M/D/H/M => 5 bytes
+                //           + 3 bytes for header
+                emit bytesProcessed(8);
+            }
+            else if(dataType == DataType_DATA)
+            {
+                //get voltage and current (16 bits each)
+                //    and cosphi (8 bits)
+                out >> voltage ;
+                out >> current;
+                out >> cosphi;
+                eldh->addDatatset(voltage,current,cosphi);
+
+                //We processed 2 byte for each voltage/current => 4 bytes
+                //           + 1 bytes for cosPhi
+                emit bytesProcessed(5);
+            }
+            else if(dataType == DataType_INFO_HEADER)
+            {
+                //do something to manage INFO FILE !
+                decodeInfoFile(out, QFileInfo(file.fileName()).fileName().at(0));
+
+                //We have to break because the file is not totaly read by decodeInfoFile
+                break;
+            }
+            else
+            {
+                qDebug() << "dataType NULL";
+            }
 
             dataType = findDataType(out);
-
-            while((!out.atEnd()) && (dataType != DataType_EOF) )
-            {
-                if(dataType == DataType_DATA_HEADER)
-                {
-                    //We get date and time in order to date next datas
-                    out >> mounth ;
-                    out >> day ;
-                    out >> year ;
-                    out >> hour ;
-                    out >> minute ;
-
-                    datetime = QDateTime(QDate(year+2000, mounth, day), QTime(hour, minute));
-                    eldh->setDateForNextDataset(datetime, QFileInfo(file.fileName()).fileName().at(0));
-
-                    //We processed 1 byte for each Y/M/D/H/M => 5 bytes
-                    //           + 3 bytes for header
-                    emit bytesProcessed(8);
-                }
-                else if(dataType == DataType_DATA)
-                {
-                    //get voltage and current (16 bits each)
-                    //    and cosphi (8 bits)
-                    out >> voltage ;
-                    out >> current;
-                    out >> cosphi;
-                    eldh->addDatatset(voltage,current,cosphi);
-
-                    //We processed 2 byte for each voltage/current => 4 bytes
-                    //           + 1 bytes for cosPhi
-                    emit bytesProcessed(5);
-                }
-                else if(dataType == DataType_INFO_HEADER)
-                {
-                    //do something to manage INFO FILE !
-                    decodeInfoFile(out, QFileInfo(file.fileName()).fileName().at(0));
-
-                    //We have to break because the file is not totaly read by decodeInfoFile
-                    break;
-                }
-                else
-                {
-                    qDebug() << "dataType NULL";
-                }
-
-                dataType = findDataType(out);
         }
     }
 }
@@ -137,7 +137,6 @@ ELFileParser::DataType ELFileParser::findDataType(QDataStream &inputStream)
     quint16 headerToCheck = 0;
     quint8  complementaryCheckData = 0;
     quint16 complementaryCheckInfo = 0;
-
 
     //set a return point
     inputStream.startTransaction();
@@ -196,7 +195,6 @@ void ELFileParser::decodeInfoFile(QDataStream &inputStream, QChar id)
     quint8 hour = 0;
     quint8 minute = 0;
     QDateTime datetime;
-
 
     QDataStream outputStream;
     outputStream.setByteOrder(QDataStream::BigEndian);

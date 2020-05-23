@@ -20,3 +20,5 @@ SOURCES += main.cpp\
 HEADERS  += qenergyloggerdecoder.h \
     eldatahandler.h \
     elfileparser.h
+
+CONFIG += console

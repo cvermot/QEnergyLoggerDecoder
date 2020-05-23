@@ -234,43 +234,44 @@ void QEnergyLoggerDecoder::populateTable()
 {
     progressBar->setValue(progressBar->maximum());
 
-       tableWidget->hide();
-       tableWidget->clearContents();
-       tableWidget->setRowCount(eldh.elData->size());
+    tableWidget->hide();
+    tableWidget->clearContents();
+    tableWidget->setRowCount(eldh.elData->size());
 
-       double powerConsumed=0;
+    double powerConsumed=0;
 
-       QVector<elDataHandler::DataInfo>::const_reverse_iterator it;
-       it = eldh.elData->crbegin();
-       int k = 0;
+    QVector<elDataHandler::DataInfo>::const_reverse_iterator it;
+    it = eldh.elData->crend();
+    it--;
+    int k = 0;
 
-       while (it != eldh.elData->crend())
-       {
-           tableWidget->setItem(k, K_TABLE_WIDGET_DATE, new QTableWidgetItem(it->date.toString(Qt::ISODate)));
-           tableWidget->setItem(k, K_TABLE_WIDGET_TENSION, new QTableWidgetItem(QString::number(it->voltage)));
-           tableWidget->setItem(k, K_TABLE_WIDGET_CURRENT, new QTableWidgetItem(QString::number(it->current)));
-           tableWidget->setItem(k, K_TABLE_WIDGET_COSPHI, new QTableWidgetItem(QString::number(((it->cosPhi)+1)/100)));
+    while (it != eldh.elData->crbegin())
+    {
+        tableWidget->setItem(k, K_TABLE_WIDGET_DATE, new QTableWidgetItem(it->date.toString(Qt::ISODate)));
+        tableWidget->setItem(k, K_TABLE_WIDGET_TENSION, new QTableWidgetItem(QString::number(it->voltage)));
+        tableWidget->setItem(k, K_TABLE_WIDGET_CURRENT, new QTableWidgetItem(QString::number(it->current)));
+        tableWidget->setItem(k, K_TABLE_WIDGET_COSPHI, new QTableWidgetItem(QString::number(((it->cosPhi)+1)/100)));
 
-           tableWidget->setItem(k, K_TABLE_WIDGET_WATT, new QTableWidgetItem(QString::number(it->voltage*it->current, 'f', 2)));
-           tableWidget->setItem(k, K_TABLE_WIDGET_VA, new QTableWidgetItem(QString::number(it->voltage*it->current*((it->cosPhi+1)/100), 'f', 2)));
+        tableWidget->setItem(k, K_TABLE_WIDGET_WATT, new QTableWidgetItem(QString::number(it->voltage*it->current, 'f', 2)));
+        tableWidget->setItem(k, K_TABLE_WIDGET_VA, new QTableWidgetItem(QString::number(it->voltage*it->current*((it->cosPhi+1)/100), 'f', 2)));
 
-           powerConsumed=powerConsumed + (it->consumedPower);
-           tableWidget->setItem(k, K_TABLE_WIDGET_CUMULATED_CONSUMPTION, new QTableWidgetItem(QString::number(powerConsumed, 'f', 2)));
-           tableWidget->setItem(k, K_TABLE_WIDGET_ID, new QTableWidgetItem(QString::number(it->id)));
+        powerConsumed=powerConsumed + (it->consumedPower);
+        tableWidget->setItem(k, K_TABLE_WIDGET_CUMULATED_CONSUMPTION, new QTableWidgetItem(QString::number(powerConsumed, 'f', 2)));
+        tableWidget->setItem(k, K_TABLE_WIDGET_ID, new QTableWidgetItem(QString::number(it->id)));
 
-           it++;
-           k++;
-       }
+        it--;
+        k++;
+    }
 
-       tableWidget->show();
+    tableWidget->show();
 
-       tableWidget->resizeColumnsToContents();
-       tableWidget->setMinimumWidth(tableWidget->horizontalHeader()->length() + tableWidget->verticalHeader()->width() +30);
+    tableWidget->resizeColumnsToContents();
+    tableWidget->setMinimumWidth(tableWidget->horizontalHeader()->length() + tableWidget->verticalHeader()->width() +30);
 
-       runPushButton->setText(tr("Run"));
-       runPushButton->setEnabled(true);
+    runPushButton->setText(tr("Run"));
+    runPushButton->setEnabled(true);
 
-       statusBar()->showMessage("Files decoding successful");
+    statusBar()->showMessage("Files decoding successful");
 }
 
 void QEnergyLoggerDecoder::selectFiles()
@@ -288,7 +289,6 @@ void QEnergyLoggerDecoder::selectOutputFile()
 
 void QEnergyLoggerDecoder::sumupConsumption()
 {
-    QList<QTableWidgetItem*> selectedItem = tableWidget->selectedItems();
     QList<QTableWidgetSelectionRange> ranges = tableWidget->selectedRanges();
     double cumulatedCons = 0;
     int numberOfSamples = 0;
@@ -299,7 +299,7 @@ void QEnergyLoggerDecoder::sumupConsumption()
         {
             for (int j = ranges.at(k).topRow() ; j <= ranges.at(k).bottomRow() ; j++)
             {
-                cumulatedCons = cumulatedCons + eldh.elData->at(eldh.elData->size()-1-j).consumedPower;
+                cumulatedCons = cumulatedCons + eldh.elData->at(j).consumedPower;
                 numberOfSamples++;
             }
         }
